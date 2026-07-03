@@ -1,0 +1,56 @@
+import os
+from typing import List
+from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
+
+class Settings(BaseSettings):
+    # Ollama Configuration - Lower Resource Models
+    # For 8GB RAM: Use llama3.2:3b or phi3:mini
+    # For 16GB RAM: Use llama3.1:8b or mistral:7b
+    # For 32GB+ RAM: Use llama3.1:70b or qwen2.5:32b
+    LLM_PROVIDER: str = "ollama"
+    LLM_MODEL: str = "llama3.2:3b"  # Smaller, faster model for lower RAM
+    LLM_ENDPOINT: str = "http://localhost:11434/v1"
+    
+    # Embedding Model - Lightweight
+    EMBEDDING_PROVIDER: str = "ollama"
+    EMBEDDING_MODEL: str = "all-minilm:latest"  # Small, fast embeddings (384 dims)
+    # Alternative: "nomic-embed-text:latest" (768 dims, larger)
+    EMBEDDING_ENDPOINT: str = "http://localhost:11434/api/embed"
+    EMBEDDING_DIMENSIONS: int = 384  # all-minilm uses 384 dimensions
+    
+    # Generation Settings
+    MAX_TOKENS: int = 4096  # Lower for faster generation
+    TEMPERATURE: float = 0.7
+    
+    # Cognee Configuration
+    COGNEE_DATABASE_PATH: str = "./data/cognee.db"
+    COGNEE_VECTOR_STORE_PATH: str = "./data/vectors"
+    COGNEE_GRAPH_STORE_PATH: str = "./data/graph"
+    
+    # Database
+    DATABASE_URL: str = "sqlite:///./data/novelforge.db"
+    
+    # Application
+    APP_NAME: str = "NovelForge"
+    APP_VERSION: str = "1.0.0"
+    DEBUG: bool = True
+    SECRET_KEY: str = "your-secret-key-change-in-production"
+    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
+    
+    # Storage
+    UPLOAD_DIR: str = "./data/uploads"
+    MAX_UPLOAD_SIZE: int = 10485760  # 10MB
+    
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+
+settings = Settings()
+
+# Ensure directories exist
+os.makedirs("./data", exist_ok=True)
+os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+os.makedirs(os.path.dirname(settings.COGNEE_DATABASE_PATH), exist_ok=True)
