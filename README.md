@@ -1,4 +1,4 @@
-# 📖 NovelForge - AI Novel Writing Assistant with Persistent Memory
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/d223931f-8c57-44ac-90a2-0c2f48150b6a" /># 📖 NovelForge - AI Novel Writing Assistant with Persistent Memory
 
 > **The Hangover Part AI: Where's My Context?** Hackathon Project
 > June 29 – July 5, 2026
@@ -48,7 +48,7 @@ NovelForge is an AI-powered novel writing assistant that uses **Cognee's hybrid 
 
 #### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/novelforge.git
+git clone https://github.com/Navneshwar/novelforge-ai
 cd novelforge
 2. Set Up Ollama (Windows)
 cmd
