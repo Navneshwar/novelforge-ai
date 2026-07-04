@@ -90,6 +90,27 @@ export const characterApi = {
     api.put(`/characters/${novelId}/${charId}`, data),
   delete: (novelId, charId) => 
     api.delete(`/characters/${novelId}/${charId}`),
+  generateBackstory: (novelId, charId) =>
+    api.post(`/characters/${novelId}/${charId}/generate-backstory`),
+  addRelationship: (novelId, charId, data) =>
+    api.post(`/characters/${novelId}/${charId}/relationships`, data),
+  getRelationships: (novelId, charId) =>
+    api.get(`/characters/${novelId}/${charId}/relationships`),
+};
+
+export const plotApi = {
+  getAll: (novelId) =>
+    api.get(`/plots/${novelId}`),
+  create: (novelId, data) =>
+    api.post(`/plots/${novelId}`, data),
+  update: (novelId, plotId, data) =>
+    api.put(`/plots/${novelId}/${plotId}`, data),
+  delete: (novelId, plotId) =>
+    api.delete(`/plots/${novelId}/${plotId}`),
+  getArcs: (novelId) =>
+    api.get(`/plots/${novelId}/arcs`),
+  createArc: (novelId, data) =>
+    api.post(`/plots/${novelId}/arcs`, data),
 };
 
 export default api;

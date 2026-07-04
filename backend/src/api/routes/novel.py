@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from src.core.database import get_db
 from src.services.novel_service import NovelService
 
@@ -47,11 +47,37 @@ class ChapterCreate(BaseModel):
 
 class GenerateRequest(BaseModel):
     prompt: str
+    context: Optional[str] = None
     style: Optional[str] = "continue"
-    temperature: Optional[float] = 0.8
+    temperature: Optional[float] = Field(default=0.8, ge=0.0, le=2.0)
 
 class ExtractCharactersRequest(BaseModel):
     text: str
+
+def serialize_novel_response(novel, include_full_content: bool = True) -> NovelResponse:
+    """Serialize a Novel model into the frontend response shape."""
+    characters = [c.name for c in novel.characters if c.is_active]
+    chapters = [
+        {"id": c.id, "title": c.title, "number": c.chapter_number}
+        for c in novel.chapters
+    ]
+    updated_at = novel.updated_at or novel.created_at
+    content = novel.content or ""
+    
+    return NovelResponse(
+        id=novel.id,
+        title=novel.title,
+        genre=novel.genre,
+        description=novel.description,
+        content=content if include_full_content else content[:500],
+        word_count=novel.word_count,
+        status=novel.status,
+        dataset_name=novel.dataset_name,
+        created_at=novel.created_at.isoformat() if novel.created_at else "",
+        updated_at=updated_at.isoformat() if updated_at else None,
+        characters=characters,
+        chapters=chapters
+    )
 
 @router.post("/", response_model=NovelResponse)
 async def create_novel(
@@ -62,20 +88,7 @@ async def create_novel(
     service = NovelService(db)
     novel = await service.create_novel(novel_data.dict())
     
-    return NovelResponse(
-        id=novel.id,
-        title=novel.title,
-        genre=novel.genre,
-        description=novel.description,
-        content=novel.content,
-        word_count=novel.word_count,
-        status=novel.status,
-        dataset_name=novel.dataset_name,
-        created_at=novel.created_at.isoformat() if novel.created_at else "",
-        updated_at=novel.updated_at.isoformat() if novel.updated_at else None,
-        characters=[],
-        chapters=[]
-    )
+    return serialize_novel_response(novel)
 
 @router.get("/", response_model=List[NovelResponse])
 async def get_all_novels(
@@ -89,23 +102,7 @@ async def get_all_novels(
     
     results = []
     for novel in novels:
-        characters = [c.name for c in novel.characters if c.is_active]
-        chapters = [{"id": c.id, "title": c.title, "number": c.chapter_number} for c in novel.chapters]
-        
-        results.append(NovelResponse(
-            id=novel.id,
-            title=novel.title,
-            genre=novel.genre,
-            description=novel.description,
-            content=novel.content[:500] if novel.content else "",  # Truncate for list view
-            word_count=novel.word_count,
-            status=novel.status,
-            dataset_name=novel.dataset_name,
-            created_at=novel.created_at.isoformat() if novel.created_at else "",
-            updated_at=novel.updated_at.isoformat() if novel.updated_at else None,
-            characters=characters,
-            chapters=chapters
-        ))
+        results.append(serialize_novel_response(novel, include_full_content=False))
     
     return results
 
@@ -121,23 +118,7 @@ async def get_novel(
     if not novel:
         raise HTTPException(status_code=404, detail="Novel not found")
     
-    characters = [c.name for c in novel.characters if c.is_active]
-    chapters = [{"id": c.id, "title": c.title, "number": c.chapter_number} for c in novel.chapters]
-    
-    return NovelResponse(
-        id=novel.id,
-        title=novel.title,
-        genre=novel.genre,
-        description=novel.description,
-        content=novel.content,
-        word_count=novel.word_count,
-        status=novel.status,
-        dataset_name=novel.dataset_name,
-        created_at=novel.created_at.isoformat() if novel.created_at else "",
-        updated_at=novel.updated_at.isoformat() if novel.updated_at else None,
-        characters=characters,
-        chapters=chapters
-    )
+    return serialize_novel_response(novel)
 
 @router.put("/{novel_id}", response_model=NovelResponse)
 async def update_novel(
@@ -152,23 +133,7 @@ async def update_novel(
     if not novel:
         raise HTTPException(status_code=404, detail="Novel not found")
     
-    characters = [c.name for c in novel.characters if c.is_active]
-    chapters = [{"id": c.id, "title": c.title, "number": c.chapter_number} for c in novel.chapters]
-    
-    return NovelResponse(
-        id=novel.id,
-        title=novel.title,
-        genre=novel.genre,
-        description=novel.description,
-        content=novel.content,
-        word_count=novel.word_count,
-        status=novel.status,
-        dataset_name=novel.dataset_name,
-        created_at=novel.created_at.isoformat() if novel.created_at else "",
-        updated_at=novel.updated_at.isoformat() if novel.updated_at else None,
-        characters=characters,
-        chapters=chapters
-    )
+    return serialize_novel_response(novel)
 
 @router.delete("/{novel_id}")
 async def delete_novel(
@@ -220,7 +185,13 @@ async def generate_content(
 ):
     """Generate AI content for a novel"""
     service = NovelService(db)
-    result = await service.generate_content(novel_id, request.prompt, request.style)
+    result = await service.generate_content(
+        novel_id,
+        request.prompt,
+        request.style,
+        context=request.context,
+        temperature=request.temperature
+    )
     
     if "error" in result:
         raise HTTPException(status_code=404, detail=result["error"])

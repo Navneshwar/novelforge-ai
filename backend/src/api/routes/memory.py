@@ -4,7 +4,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from src.core.database import get_db
 from src.services.memory_service import MemoryService
-from src.models import Novel
+from src.models import Novel, Character, CharacterRelationship, PlotPoint, Chapter
 
 router = APIRouter()
 
@@ -132,9 +132,26 @@ async def get_memory_stats(
     stats = await memory_service.get_stats(dataset=novel.dataset_name)
     
     # Add additional stats from database
-    stats["characters"] = db.query(Novel).filter(Novel.id == novel_id).first().characters.count()
-    stats["chapters"] = db.query(Novel).filter(Novel.id == novel_id).first().chapters.count()
-    stats["plot_points"] = db.query(Novel).filter(Novel.id == novel_id).first().plot_points.count()
+    stats["characters"] = len(novel.characters)
+    stats["chapters"] = len(novel.chapters)
+    stats["plot_points"] = len(novel.plot_points)
+    
+    # Count relationships
+    from src.models import CharacterRelationship
+    relationship_count = db.query(CharacterRelationship).join(
+        Character, CharacterRelationship.source_id == Character.id
+    ).filter(Character.novel_id == novel_id).count()
+    stats["relationships"] = relationship_count
+    
+    database_items = (
+        1
+        + stats["characters"]
+        + stats["chapters"]
+        + stats["plot_points"]
+        + relationship_count
+    )
+    stats["database_items"] = database_items
+    stats["total_items"] = max(stats.get("items_count", 0), database_items)
     
     return stats
 
@@ -148,10 +165,17 @@ async def get_memory_graph(
     if not novel:
         raise HTTPException(status_code=404, detail="Novel not found")
     
-    memory_service = MemoryService()
-    graph = await memory_service.get_graph(dataset=novel.dataset_name)
+    graph = {"nodes": [], "edges": [], "dataset": novel.dataset_name}
     
-    # Add novel-specific nodes from database
+    # Add novel node as central hub
+    graph["nodes"].append({
+        "id": f"novel_{novel.id}",
+        "label": novel.title,
+        "type": "novel",
+        "data": {"genre": novel.genre, "status": novel.status}
+    })
+    
+    # Add character nodes
     characters = novel.characters
     for char in characters:
         graph["nodes"].append({
@@ -160,23 +184,102 @@ async def get_memory_graph(
             "type": "character",
             "data": {
                 "role": char.role,
-                "description": char.description
+                "description": char.description,
+                "traits": char.traits
             }
+        })
+        # Edge: character belongs to novel
+        graph["edges"].append({
+            "source": f"novel_{novel.id}",
+            "target": f"char_{char.id}",
+            "type": "has_character"
         })
     
     # Add chapter nodes
     for chapter in novel.chapters:
         graph["nodes"].append({
             "id": f"chap_{chapter.id}",
-            "label": f"Chapter {chapter.chapter_number}",
+            "label": f"Ch.{chapter.chapter_number}: {chapter.title or 'Untitled'}",
             "type": "chapter",
             "data": {
                 "title": chapter.title,
-                "summary": chapter.summary
+                "summary": chapter.summary,
+                "word_count": chapter.word_count
             }
         })
+        # Edge: chapter belongs to novel
+        graph["edges"].append({
+            "source": f"novel_{novel.id}",
+            "target": f"chap_{chapter.id}",
+            "type": "has_chapter"
+        })
     
-    # Add relationships (characters to chapters)
-    # This would need actual character-chapter mapping data
+    # Add plot point nodes
+    plot_points = db.query(PlotPoint).filter(PlotPoint.novel_id == novel_id).all()
+    for pp in plot_points:
+        graph["nodes"].append({
+            "id": f"plot_{pp.id}",
+            "label": pp.title,
+            "type": "plot",
+            "data": {
+                "event_type": pp.event_type,
+                "status": pp.status,
+                "is_major": pp.is_major
+            }
+        })
+        # Edge: plot point to chapter (if assigned)
+        if pp.chapter:
+            matching_chapters = [c for c in novel.chapters if c.chapter_number == pp.chapter]
+            for mc in matching_chapters:
+                graph["edges"].append({
+                    "source": f"plot_{pp.id}",
+                    "target": f"chap_{mc.id}",
+                    "type": "occurs_in"
+                })
+        # Edge: plot point to involved characters
+        if pp.involved_characters:
+            character_ids = {char.id for char in characters}
+            for char_id in pp.involved_characters:
+                if char_id in character_ids:
+                    graph["edges"].append({
+                        "source": f"plot_{pp.id}",
+                        "target": f"char_{char_id}",
+                        "type": "involves"
+                    })
+    
+    # Add character-character relationship edges
+    for char in characters:
+        rels = db.query(CharacterRelationship).filter(
+            CharacterRelationship.source_id == char.id
+        ).all()
+        for rel in rels:
+            graph["edges"].append({
+                "source": f"char_{rel.source_id}",
+                "target": f"char_{rel.target_id}",
+                "type": rel.relationship_type,
+                "data": {
+                    "description": rel.description,
+                    "strength": rel.strength
+                }
+            })
+    
+    # Add character-chapter edges based on appearance
+    for char in characters:
+        if char.first_appearance:
+            matching = [c for c in novel.chapters if c.chapter_number == char.first_appearance]
+            for mc in matching:
+                graph["edges"].append({
+                    "source": f"char_{char.id}",
+                    "target": f"chap_{mc.id}",
+                    "type": "first_appears_in"
+                })
+        if char.last_appearance and char.last_appearance != char.first_appearance:
+            matching = [c for c in novel.chapters if c.chapter_number == char.last_appearance]
+            for mc in matching:
+                graph["edges"].append({
+                    "source": f"char_{char.id}",
+                    "target": f"chap_{mc.id}",
+                    "type": "last_appears_in"
+                })
     
     return graph

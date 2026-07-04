@@ -9,13 +9,12 @@ class Settings(BaseSettings):
     # For 16GB RAM: Use llama3.1:8b or mistral:7b
     # For 32GB+ RAM: Use llama3.1:70b or qwen2.5:32b
     LLM_PROVIDER: str = "ollama"
-    LLM_MODEL: str = "llama3.2:3b"  # Smaller, faster model for lower RAM
+    LLM_MODEL: str = "all-minilm:latest"
     LLM_ENDPOINT: str = "http://localhost:11434/v1"
     
     # Embedding Model - Lightweight
     EMBEDDING_PROVIDER: str = "ollama"
-    EMBEDDING_MODEL: str = "all-minilm:latest"  # Small, fast embeddings (384 dims)
-    # Alternative: "nomic-embed-text:latest" (768 dims, larger)
+    EMBEDDING_MODEL: str = "all-minilm:latest"
     EMBEDDING_ENDPOINT: str = "http://localhost:11434/api/embed"
     EMBEDDING_DIMENSIONS: int = 384  # all-minilm uses 384 dimensions
     
@@ -37,6 +36,9 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     SECRET_KEY: str = "your-secret-key-change-in-production"
     CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+    RATE_LIMIT_REQUESTS: int = 120
+    RATE_LIMIT_WINDOW_SECONDS: int = 60
     
     # Storage
     UPLOAD_DIR: str = "./data/uploads"

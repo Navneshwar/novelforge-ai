@@ -21,7 +21,7 @@ function ContextDisplay({ novelId, query, limit = 5 }) {
         query: query,
         limit: limit
       });
-      setContext(response.data || []);
+      setContext(response.data.items || []);
       setError(null);
     } catch (err) {
       setError('Failed to fetch context');

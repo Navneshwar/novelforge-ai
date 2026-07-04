@@ -60,14 +60,12 @@ function CharacterList({ novelId, characters }) {
 
   const generateCharacterBackstory = async (charId) => {
     try {
-      const response = await api.post(`/memory/recall/${novelId}`, {
-        query: `Generate backstory for character`,
-        limit: 1
-      });
+      const response = await api.post(`/characters/${novelId}/${charId}/generate-backstory`);
       
-      const context = response.data[0]?.text || '';
-      // In a real implementation, this would call the LLM
-      alert(`📖 Backstory generation requested for character. Context: ${context.slice(0, 100)}...`);
+      alert(`📖 Backstory generated for ${response.data.character_name}:\n\n${response.data.backstory.slice(0, 300)}...`);
+      
+      // Refresh characters to show updated backstory
+      await fetchCharacters();
     } catch (err) {
       alert('Failed to generate backstory');
       console.error(err);

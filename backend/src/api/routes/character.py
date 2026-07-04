@@ -379,3 +379,116 @@ async def get_relationships(
         description=rel.description,
         strength=rel.strength
     ) for rel in relationships]
+
+@router.post("/{novel_id}/{character_id}/generate-backstory")
+async def generate_backstory(
+    novel_id: int,
+    character_id: int,
+    db: Session = Depends(get_db)
+):
+    """Generate a backstory for a character using AI"""
+    from src.services.llm_service import LLMService
+    
+    novel = db.query(Novel).filter(Novel.id == novel_id).first()
+    if not novel:
+        raise HTTPException(status_code=404, detail="Novel not found")
+    
+    character = db.query(Character).filter(
+        Character.id == character_id,
+        Character.novel_id == novel_id
+    ).first()
+    
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
+    
+    # Recall memory context about this character
+    memory_service = MemoryService()
+    memory_context = await memory_service.recall(
+        query=f"character {character.name} backstory background history",
+        dataset=novel.dataset_name,
+        limit=5
+    )
+    
+    # Get relationships for richer context
+    relationships = db.query(CharacterRelationship).filter(
+        (CharacterRelationship.source_id == character_id) |
+        (CharacterRelationship.target_id == character_id)
+    ).all()
+    
+    rel_descriptions = []
+    for rel in relationships:
+        other_char = db.query(Character).filter(
+            Character.id == (rel.target_id if rel.source_id == character_id else rel.source_id)
+        ).first()
+        if other_char:
+            rel_descriptions.append(f"{rel.relationship_type} with {other_char.name}")
+    
+    # Build character profile for prompt
+    char_profile = f"Name: {character.name}\n"
+    if character.role:
+        char_profile += f"Role: {character.role}\n"
+    if character.description:
+        char_profile += f"Description: {character.description}\n"
+    if character.traits:
+        char_profile += f"Traits: {', '.join(character.traits)}\n"
+    if character.age:
+        char_profile += f"Age: {character.age}\n"
+    if character.gender:
+        char_profile += f"Gender: {character.gender}\n"
+    if character.occupation:
+        char_profile += f"Occupation: {character.occupation}\n"
+    if character.goals:
+        char_profile += f"Goals: {', '.join(character.goals)}\n"
+    if character.fears:
+        char_profile += f"Fears: {', '.join(character.fears)}\n"
+    if rel_descriptions:
+        char_profile += f"Relationships: {', '.join(rel_descriptions)}\n"
+    
+    # Generate backstory with LLM
+    llm_service = LLMService()
+    prompt = f"""Write a compelling backstory for a character in a {novel.genre} novel titled "{novel.title}".
+
+CHARACTER PROFILE:
+{char_profile}
+
+NOVEL CONTEXT:
+{novel.description or 'No description provided.'}
+
+Write a 2-3 paragraph backstory that:
+- Explains their motivations and personality
+- Fits the novel's genre and tone
+- Creates interesting hooks for the story
+- Is consistent with the character details above
+
+Write ONLY the backstory, no headers or labels."""
+
+    backstory = await llm_service.generate_with_memory(
+        prompt=prompt,
+        memory_context=memory_context,
+        temperature=0.8
+    )
+    
+    # Save backstory to character
+    character.background = backstory
+    db.commit()
+    db.refresh(character)
+    
+    # Store in memory
+    await memory_service.remember(
+        text=f"Backstory for {character.name}: {backstory[:500]}",
+        dataset=novel.dataset_name,
+        metadata={
+            "type": "character_backstory",
+            "character_id": character_id,
+            "name": character.name
+        }
+    )
+    
+    logger.info(f"Generated backstory for character: {character.name}")
+    
+    return {
+        "backstory": backstory,
+        "character_id": character_id,
+        "character_name": character.name,
+        "message": "Backstory generated successfully"
+    }

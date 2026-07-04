@@ -6,6 +6,7 @@ from src.services.memory_service import MemoryService
 from src.services.llm_service import LLMService
 from loguru import logger
 import uuid
+from datetime import datetime
 
 class NovelService:
     def __init__(self, db: Session):
@@ -23,6 +24,7 @@ class NovelService:
             description=data.get("description", ""),
             dataset_name=dataset_name,
             content=data.get("content", ""),
+            word_count=len((data.get("content") or "").split()),
             status=data.get("status", "draft"),
             writing_style=data.get("writing_style", ""),
             target_word_count=data.get("target_word_count")
@@ -41,7 +43,10 @@ class NovelService:
     
     async def get_all_novels(self, skip: int = 0, limit: int = 100) -> List[Novel]:
         """Get all novels"""
-        return self.db.query(Novel).order_by(desc(Novel.updated_at)).offset(skip).limit(limit).all()
+        return self.db.query(Novel).order_by(
+            desc(Novel.updated_at),
+            desc(Novel.created_at)
+        ).offset(skip).limit(limit).all()
     
     async def update_novel(self, novel_id: int, data: Dict) -> Optional[Novel]:
         """Update novel"""
@@ -55,16 +60,16 @@ class NovelService:
                 setattr(novel, key, value)
         
         # Update word count if content changed
-        if "content" in data and data["content"]:
-            novel.word_count = len(data["content"].split())
-            novel.last_written_at = None  # Will be set by SQLAlchemy
+        if "content" in data:
+            novel.word_count = len((data["content"] or "").split())
+            novel.last_written_at = datetime.utcnow()
         
         self.db.commit()
         self.db.refresh(novel)
         
         # Store in memory
         await self.memory_service.remember(
-            text=f"Novel: {novel.title} - {novel.genre} - {novel.description}",
+            text=self._build_novel_memory_text(novel),
             dataset=novel.dataset_name,
             metadata={"type": "novel_metadata", "novel_id": novel_id}
         )
@@ -97,7 +102,11 @@ class NovelService:
         
         # Store chapter in memory
         await self.memory_service.remember(
-            text=f"Chapter {chapter_number}: {chapter.title}",
+            text=(
+                f"Chapter {chapter_number}: {chapter.title}\n"
+                f"Summary: {chapter.summary or 'No summary'}\n"
+                f"Content excerpt: {(chapter.content or '')[:1500]}"
+            ),
             dataset=novel.dataset_name,
             metadata={"type": "chapter", "chapter_id": chapter.id, "number": chapter_number}
         )
@@ -105,7 +114,14 @@ class NovelService:
         logger.info(f"Added chapter {chapter_number} to novel {novel_id}")
         return chapter
     
-    async def generate_content(self, novel_id: int, prompt: str, style: str = "continue") -> Dict:
+    async def generate_content(
+        self,
+        novel_id: int,
+        prompt: str,
+        style: str = "continue",
+        context: Optional[str] = None,
+        temperature: Optional[float] = None
+    ) -> Dict:
         """Generate content using AI"""
         novel = await self.get_novel(novel_id)
         if not novel:
@@ -117,12 +133,18 @@ class NovelService:
             dataset=novel.dataset_name,
             limit=5
         )
+        if context:
+            memory_results.insert(0, {
+                "text": context,
+                "type": "editor_context",
+                "relevance": 1.0
+            })
         
         # Generate with LLM
         generated_text = await self.llm_service.generate_with_memory(
             prompt=prompt,
             memory_context=memory_results,
-            temperature=0.8
+            temperature=temperature or 0.8
         )
         
         return {
@@ -171,3 +193,14 @@ class NovelService:
             "added": added_characters,
             "total": len(characters)
         }
+
+    def _build_novel_memory_text(self, novel: Novel) -> str:
+        """Build compact memory text for the latest novel state."""
+        content_excerpt = (novel.content or "")[-2500:]
+        return (
+            f"Novel: {novel.title}\n"
+            f"Genre: {novel.genre}\n"
+            f"Description: {novel.description or 'No description'}\n"
+            f"Status: {novel.status}\n"
+            f"Latest content excerpt: {content_excerpt}"
+        )

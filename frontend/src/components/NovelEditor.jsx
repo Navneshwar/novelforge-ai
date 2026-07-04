@@ -25,7 +25,7 @@ function NovelEditor({ novel, onSave }) {
         query: content.slice(-500) || 'story context',
         limit: 5
       });
-      setMemoryContext(response.data);
+      setMemoryContext(response.data.items || []);
     } catch (err) {
       console.error('Failed to fetch memory context:', err);
     }
@@ -61,7 +61,7 @@ function NovelEditor({ novel, onSave }) {
         limit: 3
       });
 
-      const context = response.data.map(item => item.text).join('\n');
+      const context = (response.data.items || []).map(item => item.text).join('\n');
       
       const generateResponse = await api.post(`/novels/${novel.id}/generate`, {
         prompt: content,

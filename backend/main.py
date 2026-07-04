@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from src.core.config import settings
-from src.api.routes import novel, memory, consistency, character
+from src.api.routes import novel, memory, consistency, character, plot, auth, projects, dashboard
 from src.core.database import init_db
 import logging
 from loguru import logger
@@ -39,6 +39,10 @@ app.include_router(novel.router, prefix="/api/novels", tags=["Novels"])
 app.include_router(memory.router, prefix="/api/memory", tags=["Memory"])
 app.include_router(consistency.router, prefix="/api/consistency", tags=["Consistency"])
 app.include_router(character.router, prefix="/api/characters", tags=["Characters"])
+app.include_router(plot.router, prefix="/api/plots", tags=["Plots"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(projects.router, prefix="/api/projects", tags=["Projects"])
+app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 
 # Health check endpoint
 @app.get("/")

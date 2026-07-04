@@ -17,7 +17,7 @@ function GraphVisualizer({ novelId }) {
 
   useEffect(() => {
     if (graphData && containerRef.current) {
-      initThreeJS();
+      return initThreeJS();
     }
   }, [graphData]);
 
@@ -39,6 +39,10 @@ function GraphVisualizer({ novelId }) {
     const container = containerRef.current;
     const width = container.clientWidth;
     const height = container.clientHeight || 500;
+    
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
 
     // Scene
     const scene = new THREE.Scene();
@@ -102,7 +106,9 @@ function GraphVisualizer({ novelId }) {
       
       // Color based on type
       const typeColors = {
+        novel: 0xffffff,
         character: 0x6c63ff,
+        chapter: 0x38bdf8,
         location: 0x10b981,
         plot: 0xf59e0b,
         item: 0xef4444,
@@ -160,7 +166,9 @@ function GraphVisualizer({ novelId }) {
     return () => {
       cancelAnimationFrame(frameId);
       window.removeEventListener('resize', handleResize);
-      container.removeChild(renderer.domElement);
+      if (renderer.domElement.parentNode === container) {
+        container.removeChild(renderer.domElement);
+      }
       renderer.dispose();
     };
   };
