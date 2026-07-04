@@ -6,6 +6,7 @@ from .plot import router as plot_router
 from .auth import router as auth_router
 from .projects import router as projects_router
 from .dashboard import router as dashboard_router
+from .world_building import router as world_building_router
 
 __all__ = [
     "novel_router",
@@ -15,5 +16,6 @@ __all__ = [
     "plot_router",
     "auth_router",
     "projects_router",
-    "dashboard_router"
+    "dashboard_router",
+    "world_building_router"
 ]

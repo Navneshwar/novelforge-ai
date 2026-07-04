@@ -6,6 +6,7 @@ from .project import Project, project_novels
 from .history import GenerationHistory
 from .setting import AppSetting
 from .upload import UploadedFile
+from .world_building import WorldElement
 
 __all__ = [
     "Novel",
@@ -19,5 +20,6 @@ __all__ = [
     "project_novels",
     "GenerationHistory",
     "AppSetting",
-    "UploadedFile"
+    "UploadedFile",
+    "WorldElement"
 ]

@@ -16,17 +16,15 @@ class MemoryService:
         if not self._initialized:
             try:
                 # Configure Cognee for local Ollama
-                await cognee.set_llm_provider(
-                    provider="ollama",
-                    model=settings.LLM_MODEL,
-                    endpoint=settings.LLM_ENDPOINT
-                )
-                await cognee.set_embedding_provider(
-                    provider="ollama",
-                    model=settings.EMBEDDING_MODEL,
-                    endpoint=settings.EMBEDDING_ENDPOINT,
-                    dimensions=settings.EMBEDDING_DIMENSIONS
-                )
+                cognee.config.set_llm_provider("ollama")
+                cognee.config.set_llm_model(settings.LLM_MODEL)
+                cognee.config.set_llm_endpoint(settings.LLM_ENDPOINT)
+                
+                cognee.config.set_embedding_provider("ollama")
+                cognee.config.set_embedding_model(settings.EMBEDDING_MODEL)
+                cognee.config.set_embedding_endpoint(settings.EMBEDDING_ENDPOINT)
+                cognee.config.set_embedding_dimensions(settings.EMBEDDING_DIMENSIONS)
+                
                 self._initialized = True
                 logger.info(f"Cognee initialized with Ollama using model: {settings.LLM_MODEL}")
             except Exception as e:

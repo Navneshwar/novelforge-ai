@@ -64,25 +64,45 @@ class NovelService:
             novel.word_count = len((data["content"] or "").split())
             novel.last_written_at = datetime.utcnow()
         
+        # Force updated_at even if content didn't change
+        novel.updated_at = datetime.utcnow()
+        
         self.db.commit()
         self.db.refresh(novel)
         
         # Store in memory
-        await self.memory_service.remember(
-            text=self._build_novel_memory_text(novel),
-            dataset=novel.dataset_name,
-            metadata={"type": "novel_metadata", "novel_id": novel_id}
-        )
+        try:
+            await self.memory_service.remember(
+                text=self._build_novel_memory_text(novel),
+                dataset=novel.dataset_name,
+                metadata={"type": "novel_metadata", "novel_id": novel_id}
+            )
+        except Exception as e:
+            logger.warning(f"Memory store failed (non-fatal): {e}")
         
         return novel
     
+    # ── Chapter Methods ────────────────────────────────────────────
+
+    async def get_chapters(self, novel_id: int) -> Optional[List[Chapter]]:
+        """Get all chapters for a novel, ordered by chapter number"""
+        novel = await self.get_novel(novel_id)
+        if not novel:
+            return None
+        return (
+            self.db.query(Chapter)
+            .filter(Chapter.novel_id == novel_id)
+            .order_by(Chapter.chapter_number)
+            .all()
+        )
+
     async def add_chapter(self, novel_id: int, data: Dict) -> Optional[Chapter]:
         """Add a chapter to a novel"""
         novel = await self.get_novel(novel_id)
         if not novel:
             return None
         
-        chapter_number = data.get("chapter_number", len(novel.chapters) + 1)
+        chapter_number = data.get("chapter_number") or (len(novel.chapters) + 1)
         
         chapter = Chapter(
             novel_id=novel_id,
@@ -101,19 +121,84 @@ class NovelService:
         self.db.refresh(chapter)
         
         # Store chapter in memory
-        await self.memory_service.remember(
-            text=(
-                f"Chapter {chapter_number}: {chapter.title}\n"
-                f"Summary: {chapter.summary or 'No summary'}\n"
-                f"Content excerpt: {(chapter.content or '')[:1500]}"
-            ),
-            dataset=novel.dataset_name,
-            metadata={"type": "chapter", "chapter_id": chapter.id, "number": chapter_number}
-        )
+        try:
+            await self.memory_service.remember(
+                text=(
+                    f"Chapter {chapter_number}: {chapter.title}\n"
+                    f"Summary: {chapter.summary or 'No summary'}\n"
+                    f"Content excerpt: {(chapter.content or '')[:1500]}"
+                ),
+                dataset=novel.dataset_name,
+                metadata={"type": "chapter", "chapter_id": chapter.id, "number": chapter_number}
+            )
+        except Exception as e:
+            logger.warning(f"Memory store failed (non-fatal): {e}")
         
         logger.info(f"Added chapter {chapter_number} to novel {novel_id}")
         return chapter
-    
+
+    async def update_chapter(self, novel_id: int, chapter_id: int, data: Dict) -> Optional[Chapter]:
+        """Update a specific chapter"""
+        chapter = (
+            self.db.query(Chapter)
+            .filter(Chapter.novel_id == novel_id, Chapter.id == chapter_id)
+            .first()
+        )
+        if not chapter:
+            return None
+        
+        for key, value in data.items():
+            if hasattr(chapter, key) and value is not None and key not in ("id", "novel_id"):
+                setattr(chapter, key, value)
+        
+        if "content" in data and data["content"] is not None:
+            chapter.word_count = len((data["content"] or "").split())
+        
+        chapter.updated_at = datetime.utcnow()
+        self.db.commit()
+        self.db.refresh(chapter)
+        
+        # Update novel's aggregate word count
+        novel = await self.get_novel(novel_id)
+        if novel:
+            total_words = sum(c.word_count or 0 for c in novel.chapters)
+            novel.word_count = total_words
+            novel.updated_at = datetime.utcnow()
+            self.db.commit()
+        
+        logger.info(f"Updated chapter {chapter_id} in novel {novel_id}")
+        return chapter
+
+    async def delete_chapter(self, novel_id: int, chapter_id: int) -> bool:
+        """Delete a chapter and renumber remaining"""
+        chapter = (
+            self.db.query(Chapter)
+            .filter(Chapter.novel_id == novel_id, Chapter.id == chapter_id)
+            .first()
+        )
+        if not chapter:
+            return False
+        
+        deleted_number = chapter.chapter_number
+        self.db.delete(chapter)
+        self.db.commit()
+        
+        # Renumber remaining chapters
+        remaining = (
+            self.db.query(Chapter)
+            .filter(Chapter.novel_id == novel_id, Chapter.chapter_number > deleted_number)
+            .order_by(Chapter.chapter_number)
+            .all()
+        )
+        for ch in remaining:
+            ch.chapter_number -= 1
+        self.db.commit()
+        
+        logger.info(f"Deleted chapter {chapter_id} from novel {novel_id}")
+        return True
+
+    # ── AI Methods ─────────────────────────────────────────────────
+
     async def generate_content(
         self,
         novel_id: int,
@@ -180,11 +265,14 @@ class NovelService:
                 added_characters.append(char_name)
                 
                 # Store in memory
-                await self.memory_service.remember(
-                    text=f"Character: {char_name}",
-                    dataset=novel.dataset_name,
-                    metadata={"type": "character", "name": char_name}
-                )
+                try:
+                    await self.memory_service.remember(
+                        text=f"Character: {char_name}",
+                        dataset=novel.dataset_name,
+                        metadata={"type": "character", "name": char_name}
+                    )
+                except Exception as e:
+                    logger.warning(f"Memory store failed (non-fatal): {e}")
         
         self.db.commit()
         

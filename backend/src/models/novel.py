@@ -8,7 +8,7 @@ class Novel(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False)
-    genre = Column(String(100), default="General")
+    genre = Column(String(500), default="General")
     description = Column(Text, nullable=True)
     content = Column(Text, nullable=True)  # Full novel content
     word_count = Column(Integer, default=0)
@@ -31,6 +31,7 @@ class Novel(Base):
     chapters = relationship("Chapter", back_populates="novel", cascade="all, delete-orphan")
     characters = relationship("Character", back_populates="novel", cascade="all, delete-orphan")
     plot_points = relationship("PlotPoint", back_populates="novel", cascade="all, delete-orphan")
+    world_elements = relationship("WorldElement", back_populates="novel", cascade="all, delete-orphan")
 
 class Chapter(Base):
     __tablename__ = "chapters"

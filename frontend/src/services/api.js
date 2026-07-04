@@ -31,17 +31,13 @@ api.interceptors.response.use(
       
       // Handle specific status codes
       if (error.response.status === 401) {
-        // Unauthorized - redirect to login if implemented
         console.warn('Unauthorized access');
       } else if (error.response.status === 429) {
-        // Rate limiting
         console.warn('Rate limit exceeded');
       }
     } else if (error.request) {
-      // Request made but no response
       console.error('No response from server:', error.request);
     } else {
-      // Something else happened
       console.error('Request error:', error.message);
     }
     return Promise.reject(error);
@@ -55,6 +51,13 @@ export const novelApi = {
   create: (data) => api.post('/novels', data),
   update: (id, data) => api.put(`/novels/${id}`, data),
   delete: (id) => api.delete(`/novels/${id}`),
+};
+
+export const chapterApi = {
+  getAll: (novelId) => api.get(`/novels/${novelId}/chapters`),
+  create: (novelId, data) => api.post(`/novels/${novelId}/chapters`, data),
+  update: (novelId, chapterId, data) => api.put(`/novels/${novelId}/chapters/${chapterId}`, data),
+  delete: (novelId, chapterId) => api.delete(`/novels/${novelId}/chapters/${chapterId}`),
 };
 
 export const memoryApi = {
@@ -111,6 +114,17 @@ export const plotApi = {
     api.get(`/plots/${novelId}/arcs`),
   createArc: (novelId, data) =>
     api.post(`/plots/${novelId}/arcs`, data),
+};
+
+export const worldBuildingApi = {
+  getAll: (novelId, category) =>
+    api.get(`/world/${novelId}`, { params: category ? { category } : {} }),
+  create: (novelId, data) =>
+    api.post(`/world/${novelId}`, data),
+  update: (novelId, elementId, data) =>
+    api.put(`/world/${novelId}/${elementId}`, data),
+  delete: (novelId, elementId) =>
+    api.delete(`/world/${novelId}/${elementId}`),
 };
 
 export default api;

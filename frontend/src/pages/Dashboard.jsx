@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import CreateNovelModal from '../components/CreateNovelModal';
 
 function Dashboard() {
   const [novels, setNovels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchNovels();
@@ -25,13 +28,11 @@ function Dashboard() {
     }
   };
 
-  const createNewNovel = async () => {
+  const handleCreateNovel = async (novelData) => {
     try {
-      const response = await api.post('/novels', {
-        title: 'Untitled Novel',
-        genre: 'General',
-      });
-      window.location.href = `/novel/${response.data.id}`;
+      const response = await api.post('/novels', novelData);
+      setShowCreateModal(false);
+      navigate(`/novel/${response.data.id}`);
     } catch (err) {
       alert('Failed to create novel');
       console.error(err);
@@ -50,7 +51,7 @@ function Dashboard() {
     <div>
       <div className="flex justify-between align-center mb-4">
         <h1>📚 Your Novels</h1>
-        <button className="btn btn-primary" onClick={createNewNovel}>
+        <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
           + New Novel
         </button>
       </div>
@@ -65,7 +66,7 @@ function Dashboard() {
         <div className="card text-center" style={{ padding: '4rem' }}>
           <h3>No novels yet</h3>
           <p style={{ margin: '1rem 0' }}>Start your first novel with AI-powered memory!</p>
-          <button className="btn btn-primary" onClick={createNewNovel}>
+          <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
             Create Your First Novel
           </button>
         </div>
@@ -73,23 +74,24 @@ function Dashboard() {
         <div className="grid">
           {novels.map((novel) => (
             <Link to={`/novel/${novel.id}`} key={novel.id} style={{ textDecoration: 'none' }}>
-              <div className="card">
+              <div className="card novel-card">
                 <h3>{novel.title}</h3>
-                <p style={{ fontSize: '0.9rem' }}>
-                  {novel.genre} • {novel.chapters?.length || 0} chapters
+                {/* Multi-genre badges */}
+                <div className="flex gap-2" style={{ flexWrap: 'wrap', margin: '0.5rem 0' }}>
+                  {novel.genre && novel.genre.split(',').map((g, i) => (
+                    <span key={i} className="genre-badge-small">{g.trim()}</span>
+                  ))}
+                </div>
+                <p style={{ fontSize: '0.9rem', color: '#a0a0b8' }}>
+                  {novel.chapters?.length || 0} chapters • {novel.word_count || 0} words
                 </p>
-                <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-                  Last updated: {new Date(novel.updated_at).toLocaleDateString()}
+                <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', color: '#808098' }}>
+                  Last updated: {novel.updated_at ? new Date(novel.updated_at).toLocaleDateString() : 'Never'}
                 </p>
-                {novel.characters && (
+                {novel.characters && novel.characters.length > 0 && (
                   <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     {novel.characters.slice(0, 3).map((char) => (
-                      <span key={char} style={{ 
-                        background: '#2a2a3a', 
-                        padding: '0.2rem 0.6rem', 
-                        borderRadius: '12px',
-                        fontSize: '0.75rem'
-                      }}>
+                      <span key={char} className="character-chip">
                         {char}
                       </span>
                     ))}
@@ -105,6 +107,12 @@ function Dashboard() {
           ))}
         </div>
       )}
+
+      <CreateNovelModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreate={handleCreateNovel}
+      />
     </div>
   );
 }
