@@ -41,73 +41,115 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div className="text-center" style={{ padding: '4rem' }}>
-        <p>Loading your novels...</p>
+      <div className="dashboard-container">
+        <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}>
+          <p>Loading your novels...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="flex justify-between align-center mb-4">
-        <h1>📚 Your Novels</h1>
-        <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-          + New Novel
-        </button>
-      </div>
-
-      {error && (
-        <div className="card" style={{ background: '#2a1a1a', borderColor: '#ff4444', marginBottom: '1rem' }}>
-          <p style={{ color: '#ff6666' }}>{error}</p>
-        </div>
-      )}
-
-      {novels.length === 0 ? (
-        <div className="card text-center" style={{ padding: '4rem' }}>
-          <h3>No novels yet</h3>
-          <p style={{ margin: '1rem 0' }}>Start your first novel with AI-powered memory!</p>
+    <div className="dashboard-container">
+      {/* Hero Section */}
+      <section className="hero-section">
+        <h1>Welcome to NovelForge</h1>
+        <p>Your AI-powered writing companion with persistent memory. Create novels with perfect consistency across characters, plots, and world-building.</p>
+        <div className="hero-actions">
           <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
-            Create Your First Novel
+            ✨ Start Writing
+          </button>
+          <button className="btn btn-secondary">
+            📚 Browse Examples
           </button>
         </div>
-      ) : (
-        <div className="grid">
-          {novels.map((novel) => (
-            <Link to={`/novel/${novel.id}`} key={novel.id} style={{ textDecoration: 'none' }}>
-              <div className="card novel-card">
-                <h3>{novel.title}</h3>
-                {/* Multi-genre badges */}
-                <div className="flex gap-2" style={{ flexWrap: 'wrap', margin: '0.5rem 0' }}>
-                  {novel.genre && novel.genre.split(',').map((g, i) => (
-                    <span key={i} className="genre-badge-small">{g.trim()}</span>
-                  ))}
+      </section>
+
+      {/* Novels Section */}
+      <section className="novels-section">
+        <div className="section-header">
+          <h2>Your Novels</h2>
+          <p>Continue your stories or start something new</p>
+        </div>
+
+        {error && (
+          <div className="card" style={{ borderColor: 'var(--secondary-coral)', background: 'rgba(255, 107, 91, 0.05)' }}>
+            <p style={{ color: 'var(--secondary-coral)' }}>⚠️ {error}</p>
+          </div>
+        )}
+
+        {novels.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">📖</div>
+            <h3>No novels yet</h3>
+            <p>Start your creative journey by creating your first novel. NovelForge will remember every character, plot point, and detail.</p>
+            <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
+              Create Your First Novel
+            </button>
+          </div>
+        ) : (
+          <div className="novels-grid">
+            {novels.map((novel) => (
+              <Link
+                key={novel.id}
+                to={`/novel/${novel.id}`}
+                className="novel-card"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                <div className="novel-card-header">
+                  <h3 className="novel-card-title">{novel.title}</h3>
                 </div>
-                <p style={{ fontSize: '0.9rem', color: '#a0a0b8' }}>
-                  {novel.chapters?.length || 0} chapters • {novel.word_count || 0} words
-                </p>
-                <p style={{ fontSize: '0.85rem', marginTop: '0.5rem', color: '#808098' }}>
-                  Last updated: {novel.updated_at ? new Date(novel.updated_at).toLocaleDateString() : 'Never'}
-                </p>
+
+                {novel.description && (
+                  <p style={{ marginBottom: 'var(--spacing-md)', fontSize: '0.95rem' }}>
+                    {novel.description.substring(0, 120)}...
+                  </p>
+                )}
+
+                <div className="novel-card-meta">
+                  {novel.genre && (
+                    <div className="novel-card-stat">
+                      <small>Genre</small>
+                      <span className="genre-badge">{novel.genre}</span>
+                    </div>
+                  )}
+                  <div className="novel-card-stat">
+                    <small>Chapters</small>
+                    <strong>{novel.chapters_count || 0}</strong>
+                  </div>
+                  <div className="novel-card-stat">
+                    <small>Words</small>
+                    <strong>{(novel.word_count || 0).toLocaleString()}</strong>
+                  </div>
+                </div>
+
                 {novel.characters && novel.characters.length > 0 && (
-                  <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <div style={{ marginTop: 'var(--spacing-md)', display: 'flex', gap: 'var(--spacing-xs)', flexWrap: 'wrap' }}>
                     {novel.characters.slice(0, 3).map((char) => (
-                      <span key={char} className="character-chip">
+                      <span key={char} className="badge badge-primary">
                         {char}
                       </span>
                     ))}
                     {novel.characters.length > 3 && (
-                      <span style={{ fontSize: '0.75rem', color: '#6c63ff' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--primary-coral)' }}>
                         +{novel.characters.length - 3} more
                       </span>
                     )}
                   </div>
                 )}
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
 
+                {novel.last_edited && (
+                  <small style={{ color: 'var(--text-light)', marginTop: 'var(--spacing-md)', display: 'block' }}>
+                    Last edited: {new Date(novel.last_edited).toLocaleDateString()}
+                  </small>
+                )}
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Create Novel Modal */}
       <CreateNovelModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}

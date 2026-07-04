@@ -2,7 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import NovelPage from './pages/NovelPage';
-import './styles/global.css';
+import './styles/theme.css';
+import './styles/components.css';
 
 function App() {
   return (
