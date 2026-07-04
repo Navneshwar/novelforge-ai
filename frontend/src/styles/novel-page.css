@@ -76,8 +76,6 @@
   gap: var(--spacing-lg);
 }
 
-/* Novel Editor Layout - Already in components.css */
-
 @media (max-width: 1024px) {
   .novel-tabs {
     overflow-x: auto;

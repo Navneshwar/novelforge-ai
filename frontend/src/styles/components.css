@@ -400,8 +400,8 @@
   line-height: 1.8;
   color: var(--text-dark);
   outline: none;
-  border: none;
   font-family: var(--font-main);
+  border: none;
   width: 100%;
   resize: none;
 }
@@ -525,5 +525,10 @@
 
   .rich-editor-content {
     padding: var(--spacing-md);
+  }
+
+  .editor-toolbar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
