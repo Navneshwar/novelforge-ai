@@ -1,7 +1,7 @@
 
-=======
+
 # 📖 NovelForge — AI Novel Writing Assistant with Persistent Memory
->>>>>>> 0c86f7d (Backend and ui changes done)
+
 
 > **The Hangover Part AI: Where's My Context?** — WeMakeDevs Hackathon
 > June 29 – July 5, 2026
