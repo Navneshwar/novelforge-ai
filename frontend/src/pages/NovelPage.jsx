@@ -2,27 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import NovelEditor from '../components/NovelEditor';
-import GraphVisualizer from '../components/GraphVisualizer';
-import ConsistencyPanel from '../components/ConsistencyPanel';
-import CharacterList from '../components/CharacterList';
-import WorldBuilding from '../components/WorldBuilding';
-import Timeline from '../components/Timeline';
+import CharacterPanel from '../components/CharacterPanel';
+import ConsistencyChecker from '../components/ConsistencyChecker';
+import MemoryGraph from '../components/MemoryGraph';
 
 function NovelPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [novel, setNovel] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('editor');
-  const [memoryStats, setMemoryStats] = useState(null);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('editor');
 
   useEffect(() => {
     if (id && id !== 'new') {
       fetchNovel();
     } else {
       setLoading(false);
-      setNovel({ title: 'Untitled Novel', genre: 'General', chapters: [] });
     }
   }, [id]);
 
@@ -32,14 +28,6 @@ function NovelPage() {
       const response = await api.get(`/novels/${id}`);
       setNovel(response.data);
       setError(null);
-      
-      // Fetch memory stats
-      try {
-        const stats = await api.get(`/memory/stats/${id}`);
-        setMemoryStats(stats.data);
-      } catch (statsErr) {
-        console.warn('Memory stats unavailable:', statsErr);
-      }
     } catch (err) {
       setError('Failed to load novel');
       console.error(err);
@@ -48,116 +36,66 @@ function NovelPage() {
     }
   };
 
-  const saveNovel = async (data) => {
-    try {
-      if (id === 'new' || !id) {
-        const response = await api.post('/novels', data);
-        navigate(`/novel/${response.data.id}`);
-      } else {
-        await api.put(`/novels/${id}`, data);
-        await fetchNovel();
-      }
-    } catch (err) {
-      alert('Failed to save novel');
-      console.error(err);
-    }
-  };
-
   if (loading) {
     return (
-      <div className="text-center" style={{ padding: '4rem' }}>
+      <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}>
         <p>Loading novel...</p>
       </div>
     );
   }
 
-  if (error || !novel) {
+  if (error && id !== 'new') {
     return (
-      <div className="text-center" style={{ padding: '4rem' }}>
-        <h3>Novel not found</h3>
-        <button className="btn btn-primary mt-4" onClick={() => navigate('/')}>
-          Back to Dashboard
-        </button>
+      <div className="card" style={{ borderColor: 'var(--secondary-coral)', background: 'rgba(255, 107, 91, 0.05)' }}>
+        <p style={{ color: 'var(--secondary-coral)' }}>⚠️ {error}</p>
+        <button className="btn btn-primary" onClick={() => navigate('/')}>Back to Dashboard</button>
       </div>
     );
   }
 
-  const tabs = [
-    { key: 'editor', icon: '✏️', label: 'Editor' },
-    { key: 'characters', icon: '👥', label: 'Characters' },
-    { key: 'world', icon: '🌍', label: 'World' },
-    { key: 'timeline', icon: '📅', label: 'Timeline' },
-    { key: 'graph', icon: '🕸️', label: 'Memory Graph' },
-    { key: 'consistency', icon: '✓', label: 'Consistency' },
-  ];
-
   return (
-    <div>
-      <div className="flex justify-between align-center mb-4" style={{ flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1>{novel.title}</h1>
-          <div className="flex gap-2 align-center" style={{ flexWrap: 'wrap' }}>
-            {novel.genre && novel.genre.split(',').map((g, i) => (
-              <span key={i} className="genre-badge">{g.trim()}</span>
-            ))}
-            <span style={{ color: '#a0a0b8', fontSize: '0.9rem' }}>
-              • {novel.chapters?.length || 0} chapters
-            </span>
-          </div>
-        </div>
-        <div className="tab-bar">
-          {tabs.map(tab => (
-            <button
-              key={tab.key}
-              className={`tab-btn ${activeTab === tab.key ? 'tab-btn-active' : ''}`}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              <span className="tab-icon">{tab.icon}</span>
-              <span className="tab-label">{tab.label}</span>
-            </button>
-          ))}
-        </div>
+    <div className="novel-page">
+      {/* Tab Navigation */}
+      <div className="novel-tabs">
+        <button
+          className={`tab-button ${activeTab === 'editor' ? 'active' : ''}`}
+          onClick={() => setActiveTab('editor')}
+        >
+          ✍️ Editor
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'characters' ? 'active' : ''}`}
+          onClick={() => setActiveTab('characters')}
+        >
+          👥 Characters
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'consistency' ? 'active' : ''}`}
+          onClick={() => setActiveTab('consistency')}
+        >
+          🔍 Consistency
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'memory' ? 'active' : ''}`}
+          onClick={() => setActiveTab('memory')}
+        >
+          🧠 Memory Graph
+        </button>
       </div>
 
-      {memoryStats && (
-        <div className="stats-bar mb-4">
-          <div className="stat-chip">
-            <small>Memory Items</small>
-            <strong>{memoryStats.total_items || 0}</strong>
-          </div>
-          <div className="stat-chip">
-            <small>Characters</small>
-            <strong>{memoryStats.characters || 0}</strong>
-          </div>
-          <div className="stat-chip">
-            <small>Plot Points</small>
-            <strong>{memoryStats.plot_points || 0}</strong>
-          </div>
-          <div className="stat-chip">
-            <small>Relationships</small>
-            <strong>{memoryStats.relationships || 0}</strong>
-          </div>
-        </div>
-      )}
-
-      <div style={{ marginTop: '1rem' }}>
+      {/* Content */}
+      <div className="novel-content">
         {activeTab === 'editor' && (
-          <NovelEditor novel={novel} onSave={saveNovel} />
+          <NovelEditor novelId={id === 'new' ? null : id} novel={novel} onUpdate={() => fetchNovel()} />
         )}
         {activeTab === 'characters' && (
-          <CharacterList novelId={novel.id} characters={novel.characters || []} />
-        )}
-        {activeTab === 'world' && (
-          <WorldBuilding novelId={novel.id} />
-        )}
-        {activeTab === 'timeline' && (
-          <Timeline novelId={novel.id} />
-        )}
-        {activeTab === 'graph' && (
-          <GraphVisualizer novelId={novel.id} />
+          <CharacterPanel novelId={id === 'new' ? null : id} novel={novel} />
         )}
         {activeTab === 'consistency' && (
-          <ConsistencyPanel novelId={novel.id} />
+          <ConsistencyChecker novelId={id === 'new' ? null : id} novel={novel} />
+        )}
+        {activeTab === 'memory' && (
+          <MemoryGraph novelId={id === 'new' ? null : id} novel={novel} />
         )}
       </div>
     </div>
