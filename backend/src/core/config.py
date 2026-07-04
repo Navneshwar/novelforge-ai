@@ -1,7 +1,24 @@
 import os
+from pathlib import Path
 from typing import List
 from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
+
+# pydantic-settings resolves a relative `env_file` against the process's
+# current working directory, not this file's location. The README's run
+# instructions are `cd backend && python main.py`, so a bare "./.env" only
+# ever resolves to backend/.env — but the shipped .env lives one directory
+# up, at the project root. That meant Settings() silently fell back to the
+# hardcoded class defaults below on every run, regardless of what was in
+# .env. It happened to be harmless only because .env's values duplicated
+# these defaults; editing .env to point at a different model/endpoint would
+# have been silently ignored. Resolve explicit candidate paths instead so it
+# works no matter where the process is launched from.
+_BACKEND_DIR = Path(__file__).resolve().parents[2]
+_PROJECT_ROOT = _BACKEND_DIR.parent
+_ENV_CANDIDATES = [_BACKEND_DIR / ".env", _PROJECT_ROOT / ".env"]
+_ENV_FILE = next((str(p) for p in _ENV_CANDIDATES if p.exists()), str(_BACKEND_DIR / ".env"))
+
 
 class Settings(BaseSettings):
     # Ollama Configuration - Lower Resource Models
@@ -9,14 +26,21 @@ class Settings(BaseSettings):
     # For 16GB RAM: Use llama3.1:8b or mistral:7b
     # For 32GB+ RAM: Use llama3.1:70b or qwen2.5:32b
     LLM_PROVIDER: str = "ollama"
-    LLM_MODEL: str = "all-minilm:latest"
+    LLM_MODEL: str = "llama3.2:3b"
     LLM_ENDPOINT: str = "http://localhost:11434/v1"
-    
+    # Ollama doesn't need a real key, but Cognee's LLMConfig validator requires
+    # LLM_API_KEY to be set to *something* or it refuses to start.
+    LLM_API_KEY: str = "ollama"
+
     # Embedding Model - Lightweight
     EMBEDDING_PROVIDER: str = "ollama"
     EMBEDDING_MODEL: str = "all-minilm:latest"
     EMBEDDING_ENDPOINT: str = "http://localhost:11434/api/embed"
     EMBEDDING_DIMENSIONS: int = 384  # all-minilm uses 384 dimensions
+    # Required by Cognee's embedding validator when EMBEDDING_PROVIDER=ollama,
+    # even though Ollama itself doesn't use it. Must match the embedding model's
+    # tokenizer family (all-MiniLM here) or Cognee raises a validation error.
+    HUGGINGFACE_TOKENIZER: str = "sentence-transformers/all-MiniLM-L6-v2"
     
     # Generation Settings
     MAX_TOKENS: int = 4096  # Lower for faster generation
@@ -45,7 +69,7 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = 10485760  # 10MB
     
     model_config = ConfigDict(
-        env_file=".env",
+        env_file=_ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore"
     )

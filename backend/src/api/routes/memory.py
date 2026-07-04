@@ -160,18 +160,43 @@ async def get_memory_graph(
     novel_id: int,
     db: Session = Depends(get_db)
 ):
-    """Get the knowledge graph for a novel"""
+    """Get the knowledge graph for a novel.
+
+    This merges two sources:
+      1. Cognee's actual extracted knowledge graph (entities/relationships
+         Cognee derived from remembered text via cognify/memify) — this is
+         what makes it a "memory graph" rather than just an ER diagram.
+      2. The app's own structural data (novel/characters/chapters/plot
+         points) as a reliable fallback/scaffold, since Cognee's graph is
+         empty until enough content has been remembered.
+
+    Previously this endpoint only built #2 and never called into Cognee at
+    all, so the "Memory Graph Visualizer" wasn't showing Cognee's memory.
+    """
     novel = db.query(Novel).filter(Novel.id == novel_id).first()
     if not novel:
         raise HTTPException(status_code=404, detail="Novel not found")
-    
+
     graph = {"nodes": [], "edges": [], "dataset": novel.dataset_name}
-    
+
+    # Pull Cognee's actual graph first and seed our node/edge lists with it.
+    # NOTE: "origin" (not "source") is used for provenance tagging, since
+    # edges already use "source"/"target" to mean source-node-id/target-node-id.
+    memory_service = MemoryService()
+    cognee_graph = await memory_service.get_graph(dataset=novel.dataset_name)
+    for node in cognee_graph.get("nodes", []):
+        node.setdefault("origin", "cognee")
+        graph["nodes"].append(node)
+    for edge in cognee_graph.get("edges", []):
+        edge.setdefault("origin", "cognee")
+        graph["edges"].append(edge)
+
     # Add novel node as central hub
     graph["nodes"].append({
         "id": f"novel_{novel.id}",
         "label": novel.title,
         "type": "novel",
+        "origin": "database",
         "data": {"genre": novel.genre, "status": novel.status}
     })
     
@@ -281,5 +306,12 @@ async def get_memory_graph(
                     "target": f"chap_{mc.id}",
                     "type": "last_appears_in"
                 })
-    
+
+    # Anything added above without an explicit origin came from our own
+    # SQL models, not Cognee's extracted memory graph.
+    for node in graph["nodes"]:
+        node.setdefault("origin", "database")
+    for edge in graph["edges"]:
+        edge.setdefault("origin", "database")
+
     return graph

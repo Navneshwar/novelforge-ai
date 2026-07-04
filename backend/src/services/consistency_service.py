@@ -28,8 +28,18 @@ class ConsistencyService:
         plot_issues = await self._check_plot_points(novel_id)
         issues.extend(plot_issues)
         
-        # Check memory consistency
-        memory_issues = await self._check_memory_consistency(novel.dataset_name)
+        # Check memory consistency (real LLM-based contradiction check against
+        # the most recently written chapter, using Cognee-recalled context)
+        latest_chapter = (
+            self.db.query(Chapter)
+            .filter(Chapter.novel_id == novel_id)
+            .order_by(Chapter.chapter_number.desc())
+            .first()
+        )
+        memory_issues = await self._check_memory_consistency(
+            novel.dataset_name,
+            text_to_check=latest_chapter.content if latest_chapter else None,
+        )
         issues.extend(memory_issues)
         
         # Check chapter continuity
@@ -117,31 +127,44 @@ class ConsistencyService:
         
         return issues
     
-    async def _check_memory_consistency(self, dataset: str) -> List[Dict]:
-        """Check memory consistency using Cognee"""
+    async def _check_memory_consistency(
+        self, dataset: str, text_to_check: Optional[str] = None
+    ) -> List[Dict]:
+        """Check consistency using Cognee-recalled context + an actual LLM
+        contradiction analysis (llm_service.check_consistency), instead of
+        just flagging whenever recall() returns any results at all — recall
+        returns semantically related memories by design, not contradictions,
+        so treating "got results" as "found a problem" produced a false
+        positive on almost every run."""
         issues = []
-        
-        # Try to recall any inconsistencies from memory
+
+        if not text_to_check or not text_to_check.strip():
+            return issues
+
         try:
-            results = await self.memory_service.recall(
-                query="inconsistency contradiction error",
+            memory_context = await self.memory_service.recall(
+                query=text_to_check[:500],
                 dataset=dataset,
                 limit=5
             )
-            
-            # If we find inconsistencies in memory
-            if results:
+
+            analysis = await self.llm_service.check_consistency(
+                text=text_to_check,
+                memory_context=memory_context
+            )
+
+            if analysis.get("has_issues"):
                 issues.append({
                     "type": "consistency",
                     "severity": "medium",
-                    "title": "Potential memory inconsistencies detected",
-                    "description": f"Found {len(results)} potential inconsistencies in memory",
+                    "title": "Potential contradiction with story memory",
+                    "description": analysis.get("analysis", "")[:500],
                     "location": "Memory layer",
-                    "suggestion": "Review and clean up memory entries"
+                    "suggestion": "Review the flagged passage against established story details"
                 })
         except Exception as e:
             logger.error(f"Error checking memory consistency: {e}")
-        
+
         return issues
     
     async def _check_chapter_continuity(self, novel_id: int) -> List[Dict]:

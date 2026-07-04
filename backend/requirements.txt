@@ -7,9 +7,20 @@ python-dotenv>=1.0.1
 sqlalchemy>=2.0.31
 
 # Cognee - Memory Layer
-cognee>=1.0.0
+# Pinned to the range verified against memory_service.py's exact kwargs
+# (remember/recall/forget/improve param names confirmed against 1.2.2).
+# An unbounded >=1.0.0 risks the same "kwarg renamed under us" class of bug
+# this file just got fixed for, on any future minor/patch bump.
+#
+# [groq,fastembed] extras: for the hosted deployment we replace Ollama with
+# Groq (LLM) and fastembed (embeddings, runs in-process — no server to host).
+# This does NOT touch memory_service.py's remember/recall/improve/forget
+# calls; those are provider-agnostic. It only changes which env vars
+# initialize() sets (LLM_PROVIDER=groq, EMBEDDING_PROVIDER=fastembed).
+cognee[groq,fastembed]>=1.2.0,<1.3.0
 
-# Ollama Integration
+# Ollama Integration — kept for local dev only (run.sh / local .env still
+# use Ollama). Not required in the hosted/production environment.
 ollama>=0.3.0
 
 # Data Validation & Settings
