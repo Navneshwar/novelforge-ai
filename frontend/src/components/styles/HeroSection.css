@@ -1,0 +1,326 @@
+/* ═════════════════════════════════════════════════════════════════
+   Hero Section Styles
+   Premium, editorial aesthetic
+   ═════════════════════════════════════════════════════════════════ */
+
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-5xl) var(--spacing-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background gradient overlay */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse 800px 600px at 50% 20%, rgba(212, 165, 116, 0.08), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-container {
+  max-width: 1400px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-5xl);
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── HERO CONTENT ─── */
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xl);
+}
+
+/* Divider Lines */
+.hero-divider {
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-accent-primary), transparent);
+  margin: 0;
+}
+
+/* Hero Title */
+.hero-title {
+  font-size: clamp(2.5rem, 8vw, 3.5rem);
+  font-family: var(--font-family-heading);
+  color: var(--color-text-heading);
+  line-height: var(--line-height-tight);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.hero-title-line {
+  display: block;
+  animation: slide-up 0.8s ease 0.1s backwards;
+}
+
+.hero-title-line:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+/* Hero Subtitle */
+.hero-subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-body);
+  line-height: var(--line-height-relaxed);
+  max-width: 450px;
+  margin: 0;
+  animation: fade-in 0.8s ease 0.5s backwards;
+}
+
+/* ─── CTA BUTTONS ─── */
+.hero-cta {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: center;
+  flex-wrap: wrap;
+  animation: fade-in 0.8s ease 0.7s backwards;
+}
+
+.hero-cta .btn {
+  letter-spacing: 0.02em;
+}
+
+/* ═══════════════════════════════════════════════════════��═════════
+   ILLUSTRATION AREA
+   ═════════════════════════════════════════════════════════════════ */
+
+.hero-illustration {
+  height: 600px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.illustration-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.08));
+}
+
+/* ─── FLOATING BOOKS ─── */
+.floating-book {
+  position: absolute;
+  width: 120px;
+  height: 160px;
+  background: white;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  animation: float 4s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.book-cover {
+  width: 90%;
+  height: 90%;
+  background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-warm) 100%);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.book-1 {
+  top: 50px;
+  left: 20px;
+  animation-delay: 0s;
+}
+
+.book-2 {
+  top: 200px;
+  right: 40px;
+  animation-delay: 1s;
+  z-index: 2;
+}
+
+.book-3 {
+  bottom: 50px;
+  left: 100px;
+  animation-delay: 2s;
+}
+
+/* ─── ABSTRACT ELEMENTS ─── */
+.abstract-wave {
+  position: absolute;
+  opacity: 0.4;
+}
+
+.wave-1 {
+  width: 300px;
+  height: 200px;
+  background: linear-gradient(45deg, var(--color-accent-warm) 0%, transparent 70%);
+  border-radius: 50% 50% 0 0;
+  top: 20%;
+  right: 10%;
+  filter: blur(40px);
+  animation: slide-up 1.5s ease infinite alternate;
+}
+
+.wave-2 {
+  width: 250px;
+  height: 150px;
+  background: linear-gradient(135deg, var(--color-accent-primary) 0%, transparent 60%);
+  border-radius: 50%;
+  bottom: 10%;
+  left: 5%;
+  filter: blur(50px);
+  animation: float 5s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+/* ─── BLOBS ─── */
+.abstract-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.25;
+}
+
+.blob-1 {
+  width: 280px;
+  height: 280px;
+  background: var(--color-accent-warm);
+  top: 10%;
+  left: 40%;
+  animation: float 6s ease-in-out infinite;
+}
+
+.blob-2 {
+  width: 220px;
+  height: 220px;
+  background: var(--color-accent-primary);
+  bottom: 15%;
+  right: 25%;
+  animation: float 7s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+/* ─── INK DROPS ─── */
+.ink-drop {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--color-accent-primary);
+  opacity: 0.15;
+  filter: blur(2px);
+}
+
+.ink-1 {
+  width: 80px;
+  height: 80px;
+  top: 30%;
+  right: 20%;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.ink-2 {
+  width: 60px;
+  height: 60px;
+  bottom: 25%;
+  left: 30%;
+  animation: pulse 4s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+/* ═════════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN
+   ═════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-3xl);
+  }
+
+  .hero-illustration {
+    height: 400px;
+  }
+
+  .floating-book {
+    width: 100px;
+    height: 140px;
+  }
+
+  .book-1 {
+    top: 20px;
+    left: 40px;
+  }
+
+  .book-2 {
+    top: 180px;
+    right: 80px;
+  }
+
+  .book-3 {
+    bottom: 40px;
+    left: 60px;
+  }
+
+  .wave-1,
+  .wave-2 {
+    display: none;
+  }
+
+  .abstract-blob {
+    opacity: 0.15;
+  }
+
+  .blob-1 {
+    width: 200px;
+    height: 200px;
+  }
+
+  .blob-2 {
+    width: 160px;
+    height: 160px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: auto;
+    padding: var(--spacing-3xl) var(--spacing-lg);
+  }
+
+  .hero-container {
+    gap: var(--spacing-2xl);
+  }
+
+  .hero-title {
+    font-size: clamp(2rem, 6vw, 2.5rem);
+  }
+
+  .hero-subtitle {
+    font-size: var(--font-size-base);
+    max-width: 100%;
+  }
+
+  .hero-cta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-cta .btn {
+    width: 100%;
+  }
+
+  .hero-illustration {
+    display: none;
+  }
+}
