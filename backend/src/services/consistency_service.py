@@ -5,6 +5,7 @@ from src.services.memory_service import MemoryService
 from src.services.llm_service import LLMService
 from loguru import logger
 import json
+import asyncio
 
 class ConsistencyService:
     def __init__(self, db: Session):
@@ -142,15 +143,21 @@ class ConsistencyService:
             return issues
 
         try:
-            memory_context = await self.memory_service.recall(
-                query=text_to_check[:500],
-                dataset=dataset,
-                limit=5
+            memory_context = await asyncio.wait_for(
+                self.memory_service.recall(
+                    query=text_to_check[:500],
+                    dataset=dataset,
+                    limit=5
+                ),
+                timeout=15,
             )
 
-            analysis = await self.llm_service.check_consistency(
-                text=text_to_check,
-                memory_context=memory_context
+            analysis = await asyncio.wait_for(
+                self.llm_service.check_consistency(
+                    text=text_to_check,
+                    memory_context=memory_context
+                ),
+                timeout=20,
             )
 
             if analysis.get("has_issues"):
@@ -162,6 +169,11 @@ class ConsistencyService:
                     "location": "Memory layer",
                     "suggestion": "Review the flagged passage against established story details"
                 })
+        except asyncio.TimeoutError:
+            logger.warning(
+                f"Memory consistency check timed out for dataset={dataset} "
+                "(local LLM took too long) — skipping this check for now"
+            )
         except Exception as e:
             logger.error(f"Error checking memory consistency: {e}")
 

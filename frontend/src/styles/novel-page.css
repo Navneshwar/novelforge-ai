@@ -11,7 +11,12 @@
   display: flex;
   gap: var(--spacing-sm);
   border-bottom: 2px solid var(--border-light);
-  overflow-x: auto;
+  overflow-x: visible;
+  scrollbar-width: thin;
+}
+
+.novel-tabs::-webkit-scrollbar {
+  height: 4px;
 }
 
 .tab-button {
@@ -74,6 +79,247 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
+}
+
+/* Memory Graph — AI memory opt-in banner */
+.mg-ai-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  background: var(--gradient-subtle);
+}
+
+.mg-ai-banner-text {
+  flex: 1;
+  min-width: 240px;
+}
+
+.mg-ai-banner-text p {
+  font-size: 0.85rem;
+}
+
+/* Memory Graph — Filters */
+.mg-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.mg-filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.mg-search-input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.mg-origin-toggle {
+  display: flex;
+  gap: 0.35rem;
+  background: var(--bg-light-cream);
+  padding: 0.3rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+}
+
+.mg-origin-btn {
+  background: none;
+  border: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-light);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.mg-origin-btn:hover {
+  color: var(--text-dark);
+}
+
+.mg-origin-btn.active {
+  background: white;
+  color: var(--primary-coral);
+  box-shadow: var(--shadow-sm);
+}
+
+.mg-type-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mg-type-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--border-light);
+  background: white;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-light);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: all 0.2s ease;
+}
+
+.mg-type-chip.active {
+  opacity: 1;
+  border-color: var(--chip-color, var(--primary-coral));
+  color: var(--text-dark);
+  background: color-mix(in srgb, var(--chip-color, var(--primary-coral)) 8%, white);
+}
+
+.mg-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.mg-chip-count {
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+/* Memory Graph — Explorer */
+.mg-explorer {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: var(--spacing-lg);
+  align-items: start;
+}
+
+.mg-node-list {
+  max-height: 560px;
+  overflow-y: auto;
+}
+
+.mg-node-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.mg-node-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.mg-node-item:hover {
+  background: var(--bg-light-cream);
+}
+
+.mg-node-item.selected {
+  border-color: var(--chip-color, var(--primary-coral));
+  background: color-mix(in srgb, var(--chip-color, var(--primary-coral)) 6%, white);
+}
+
+.mg-node-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mg-node-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.mg-node-label {
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mg-node-sub {
+  font-size: 0.78rem;
+  color: var(--text-light);
+}
+
+.mg-node-detail {
+  min-height: 300px;
+  position: sticky;
+  top: calc(var(--spacing-lg) + 60px);
+}
+
+.mg-detail-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  min-height: 260px;
+  color: var(--text-light);
+}
+
+.mg-connection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.mg-connection-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-light-cream);
+  font-size: 0.85rem;
+}
+
+.mg-conn-rel {
+  color: var(--text-light);
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.mg-conn-target {
+  background: none;
+  border: none;
+  color: var(--primary-coral);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.mg-conn-target:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .mg-explorer {
+    grid-template-columns: 1fr;
+  }
+
+  .mg-node-detail {
+    position: static;
+  }
 }
 
 @media (max-width: 1024px) {

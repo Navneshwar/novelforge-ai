@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, PageBreak } from 'docx';
+import { saveAs } from 'file-saver';
 import api from '../services/api';
 
 function NovelEditor({ novelId, novel, onUpdate }) {
@@ -72,6 +74,78 @@ function NovelEditor({ novelId, novel, onUpdate }) {
     }
   };
 
+  // Merge the currently-edited content into the chapter list so exports
+  // always include unsaved changes from the editor, not just what was
+  // last saved to the server.
+  const getExportableChapters = () => chapters.map((ch) =>
+    currentChapter && ch.id === currentChapter.id ? { ...ch, content } : ch
+  );
+
+  const exportToTxt = () => {
+    const novelTitle = novel?.title || 'Untitled Novel';
+    let text = `${novelTitle}\n${'='.repeat(novelTitle.length)}\n\n`;
+    getExportableChapters().forEach((ch, idx) => {
+      const chTitle = ch.title || `Chapter ${idx + 1}`;
+      text += `\n${'-'.repeat(40)}\n${chTitle}\n${'-'.repeat(40)}\n\n`;
+      text += `${ch.content || ''}\n\n`;
+    });
+
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    saveAs(blob, `${novelTitle.replace(/[^a-zA-Z0-9]/g, '_')}.txt`);
+  };
+
+  const exportToDocx = async () => {
+    const novelTitle = novel?.title || 'Untitled Novel';
+    const children = [
+      new Paragraph({
+        text: novelTitle,
+        heading: HeadingLevel.TITLE,
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 400 },
+      }),
+    ];
+
+    if (novel?.genre) {
+      children.push(
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 800 },
+          children: [new TextRun({ text: novel.genre, italics: true, size: 24, color: '666666' })],
+        })
+      );
+    }
+
+    children.push(new Paragraph({ children: [new PageBreak()] }));
+
+    getExportableChapters().forEach((ch, idx) => {
+      children.push(
+        new Paragraph({
+          text: ch.title || `Chapter ${idx + 1}`,
+          heading: HeadingLevel.HEADING_1,
+          spacing: { before: 400, after: 200 },
+          pageBreakBefore: idx > 0,
+        })
+      );
+
+      const paragraphs = (ch.content || '').split('\n').filter((p) => p.trim());
+      if (paragraphs.length === 0) {
+        children.push(new Paragraph({ text: '' }));
+      }
+      paragraphs.forEach((para) => {
+        children.push(
+          new Paragraph({
+            spacing: { after: 120 },
+            children: [new TextRun({ text: para.trim(), size: 24 })],
+          })
+        );
+      });
+    });
+
+    const doc = new Document({ sections: [{ properties: {}, children }] });
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `${novelTitle.replace(/[^a-zA-Z0-9]/g, '_')}.docx`);
+  };
+
   return (
     <div className="novel-editor-layout">
       {/* Chapter Sidebar */}
@@ -128,6 +202,15 @@ function NovelEditor({ novelId, novel, onUpdate }) {
                 <button className="btn btn-small btn-secondary" onClick={handleSave} disabled={saving || !novelId}>
                   {saving ? 'Saving...' : '💾'} Save
                 </button>
+                <div className="export-dropdown">
+                  <button className="btn btn-small btn-secondary" disabled={chapters.length === 0}>
+                    📄 Export ▾
+                  </button>
+                  <div className="export-dropdown-content">
+                    <button onClick={exportToDocx}>📄 Export as DOCX</button>
+                    <button onClick={exportToTxt}>📝 Export as TXT</button>
+                  </div>
+                </div>
                 {autoSaveStatus && <span className="save-status">{autoSaveStatus}</span>}
               </div>
             </div>

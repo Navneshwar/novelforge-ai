@@ -144,7 +144,7 @@
 }
 
 .chapter-item:hover {
-  background: rgba(255, 140, 66, 0.08);
+  background: rgba(79, 70, 229, 0.08);
 }
 
 .chapter-item-active {
@@ -198,7 +198,7 @@
 .chapter-sidebar-footer {
   padding: var(--spacing-md);
   border-top: 1px solid var(--border-light);
-  background: rgba(255, 140, 66, 0.04);
+  background: rgba(79, 70, 229, 0.04);
 }
 
 .chapter-stats {

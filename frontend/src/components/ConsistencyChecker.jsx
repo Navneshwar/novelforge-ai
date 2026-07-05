@@ -10,7 +10,7 @@ function ConsistencyChecker({ novelId, novel }) {
     if (!novelId) return;
     setLoading(true);
     try {
-      const response = await api.post(`/novels/${novelId}/consistency/check`);
+      const response = await api.post(`/consistency/check/${novelId}`);
       setIssues(response.data.issues || []);
       setHasRun(true);
     } catch (err) {

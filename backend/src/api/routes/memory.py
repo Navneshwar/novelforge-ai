@@ -5,6 +5,8 @@ from pydantic import BaseModel
 from src.core.database import get_db
 from src.services.memory_service import MemoryService
 from src.models import Novel, Character, CharacterRelationship, PlotPoint, Chapter
+import asyncio
+from loguru import logger
 
 router = APIRouter()
 
@@ -158,20 +160,20 @@ async def get_memory_stats(
 @router.get("/graph/{novel_id}")
 async def get_memory_graph(
     novel_id: int,
+    include_ai_memory: bool = False,
     db: Session = Depends(get_db)
 ):
     """Get the knowledge graph for a novel.
 
-    This merges two sources:
-      1. Cognee's actual extracted knowledge graph (entities/relationships
-         Cognee derived from remembered text via cognify/memify) — this is
-         what makes it a "memory graph" rather than just an ER diagram.
-      2. The app's own structural data (novel/characters/chapters/plot
-         points) as a reliable fallback/scaffold, since Cognee's graph is
-         empty until enough content has been remembered.
-
-    Previously this endpoint only built #2 and never called into Cognee at
-    all, so the "Memory Graph Visualizer" wasn't showing Cognee's memory.
+    This can merge two sources:
+      1. The app's own structural data (novel/characters/chapters/plot
+         points) — pure SQL, fast, always included.
+      2. Cognee's actual extracted knowledge graph (entities/relationships
+         Cognee derived from remembered text via cognify/memify) — this
+         goes through the configured LLM (recall() triggers query routing
+         + graph completion) and can take a long time on a local model, so
+         it's opt-in via ?include_ai_memory=true rather than fetched on
+         every page load.
     """
     novel = db.query(Novel).filter(Novel.id == novel_id).first()
     if not novel:
@@ -179,17 +181,25 @@ async def get_memory_graph(
 
     graph = {"nodes": [], "edges": [], "dataset": novel.dataset_name}
 
-    # Pull Cognee's actual graph first and seed our node/edge lists with it.
+    # Cognee's graph is opt-in (see docstring) — it's an LLM round-trip and
+    # shouldn't block the tab from loading instantly by default.
     # NOTE: "origin" (not "source") is used for provenance tagging, since
     # edges already use "source"/"target" to mean source-node-id/target-node-id.
-    memory_service = MemoryService()
-    cognee_graph = await memory_service.get_graph(dataset=novel.dataset_name)
-    for node in cognee_graph.get("nodes", []):
-        node.setdefault("origin", "cognee")
-        graph["nodes"].append(node)
-    for edge in cognee_graph.get("edges", []):
-        edge.setdefault("origin", "cognee")
-        graph["edges"].append(edge)
+    if include_ai_memory:
+        memory_service = MemoryService()
+        try:
+            cognee_graph = await asyncio.wait_for(
+                memory_service.get_graph(dataset=novel.dataset_name), timeout=25
+            )
+        except asyncio.TimeoutError:
+            logger.warning(f"Cognee graph fetch timed out for novel {novel_id}")
+            cognee_graph = {"nodes": [], "edges": []}
+        for node in cognee_graph.get("nodes", []):
+            node.setdefault("origin", "cognee")
+            graph["nodes"].append(node)
+        for edge in cognee_graph.get("edges", []):
+            edge.setdefault("origin", "cognee")
+            graph["edges"].append(edge)
 
     # Add novel node as central hub
     graph["nodes"].append({

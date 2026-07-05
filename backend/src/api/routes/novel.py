@@ -45,7 +45,7 @@ class NovelResponse(BaseModel):
     dataset_name: str
     created_at: str
     updated_at: Optional[str]
-    characters: List[str] = []
+    characters: List[dict] = []
     chapters: List[dict] = []
 
 class ChapterCreate(BaseModel):
@@ -80,7 +80,16 @@ class ExtractCharactersRequest(BaseModel):
 
 def serialize_novel_response(novel, include_full_content: bool = True) -> NovelResponse:
     """Serialize a Novel model into the frontend response shape."""
-    characters = [c.name for c in novel.characters if c.is_active]
+    characters = [
+        {
+            "id": c.id,
+            "name": c.name,
+            "role": c.role,
+            "description": c.description,
+            "traits": c.traits or [],
+        }
+        for c in novel.characters if c.is_active
+    ]
     chapters = [
         {
             "id": c.id,

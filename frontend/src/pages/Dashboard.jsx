@@ -126,8 +126,8 @@ function Dashboard() {
                 {novel.characters && novel.characters.length > 0 && (
                   <div style={{ marginTop: 'var(--spacing-md)', display: 'flex', gap: 'var(--spacing-xs)', flexWrap: 'wrap' }}>
                     {novel.characters.slice(0, 3).map((char) => (
-                      <span key={char} className="badge badge-primary">
-                        {char}
+                      <span key={char.id ?? char.name} className="badge badge-primary">
+                        {char.name}
                       </span>
                     ))}
                     {novel.characters.length > 3 && (

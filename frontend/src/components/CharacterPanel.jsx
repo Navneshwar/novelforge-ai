@@ -19,7 +19,7 @@ function CharacterPanel({ novelId, novel }) {
 
     setLoading(true);
     try {
-      const response = await api.post(`/novels/${novelId}/characters`, {
+      const response = await api.post(`/characters/${novelId}`, {
         name: formData.name,
         role: formData.role,
         description: formData.description,

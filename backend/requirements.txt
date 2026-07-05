@@ -18,6 +18,11 @@ sqlalchemy>=2.0.31
 # calls; those are provider-agnostic. It only changes which env vars
 # initialize() sets (LLM_PROVIDER=groq, EMBEDDING_PROVIDER=fastembed).
 cognee[groq,fastembed]>=1.2.0,<1.3.0
+# Cognee uses a HuggingFace tokenizer (HUGGINGFACE_TOKENIZER setting) purely to
+# count/chunk tokens even when EMBEDDING_PROVIDER=ollama, so this is required
+# even though Ollama itself does not need it. Without it you will see
+# "No module named 'transformers'" errors during remember()/recall().
+transformers>=4.44.0
 
 # Ollama Integration — kept for local dev only (run.sh / local .env still
 # use Ollama). Not required in the hosted/production environment.
