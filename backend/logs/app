@@ -1,0 +1,82 @@
+2026-07-05 00:43:18.148 | WARNING  | __main__:<module>:110 - No frontend build found at C:\Users\abiii\novelforge-ai\frontend\dist — serving API only. Run `npm run build` in frontend/ before deploying if you want this process to serve the UI too.
+2026-07-05 00:43:23.097 | WARNING  | __mp_main__:<module>:110 - No frontend build found at C:\Users\abiii\novelforge-ai\frontend\dist — serving API only. Run `npm run build` in frontend/ before deploying if you want this process to serve the UI too.
+2026-07-05 00:43:23.179 | WARNING  | main:<module>:110 - No frontend build found at C:\Users\abiii\novelforge-ai\frontend\dist — serving API only. Run `npm run build` in frontend/ before deploying if you want this process to serve the UI too.
+2026-07-05 00:43:23.179 | WARNING  | main:<module>:110 - No frontend build found at C:\Users\abiii\novelforge-ai\frontend\dist — serving API only. Run `npm run build` in frontend/ before deploying if you want this process to serve the UI too.
+2026-07-05 00:43:23.181 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 00:43:23.181 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 00:43:23.181 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 00:43:23.181 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 00:43:23.182 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 00:43:23.182 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 00:43:23.182 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 00:43:23.182 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 00:43:23.182 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 00:43:23.182 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 00:45:03.050 | INFO     | src.services.novel_service:create_novel:37 - Created novel: ani (ID: 1)
+2026-07-05 00:45:03.050 | INFO     | src.services.novel_service:create_novel:37 - Created novel: ani (ID: 1)
+2026-07-05 15:20:53.820 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:20:53.820 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:20:53.823 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:20:53.823 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:20:53.823 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:20:53.823 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:20:53.824 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:20:53.824 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:20:53.824 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 15:20:53.824 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 15:26:49.170 | INFO     | main:shutdown_event:81 - 🛑 NovelForge shutting down...
+2026-07-05 15:26:49.170 | INFO     | main:shutdown_event:81 - 🛑 NovelForge shutting down...
+2026-07-05 15:27:04.393 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:27:04.393 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:27:04.393 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:27:04.393 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:27:04.394 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:27:04.394 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:27:04.394 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:27:04.394 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:27:04.394 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 15:27:04.394 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 15:27:43.655 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:27:43.655 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:27:43.656 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:27:43.656 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:27:43.656 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:27:43.656 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:27:43.657 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:27:43.657 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:27:43.657 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 15:27:43.657 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 15:39:36.966 | INFO     | main:shutdown_event:81 - 🛑 NovelForge shutting down...
+2026-07-05 15:39:36.966 | INFO     | main:shutdown_event:81 - 🛑 NovelForge shutting down...
+2026-07-05 15:40:01.928 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:40:01.928 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:40:01.929 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:40:01.929 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:40:01.929 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:40:01.929 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:40:01.930 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:40:01.930 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:40:01.930 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 15:40:01.930 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 15:40:07.041 | INFO     | main:shutdown_event:81 - 🛑 NovelForge shutting down...
+2026-07-05 15:40:07.041 | INFO     | main:shutdown_event:81 - 🛑 NovelForge shutting down...
+2026-07-05 15:42:35.618 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:42:35.618 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:42:35.621 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:42:35.621 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:42:35.622 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:42:35.622 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:42:35.622 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:42:35.622 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:42:35.623 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 15:42:35.623 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 15:45:11.742 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:45:11.742 | INFO     | main:startup_event:72 - 🚀 NovelForge v1.0.0 starting...
+2026-07-05 15:45:11.742 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:45:11.742 | INFO     | main:startup_event:73 - 📝 LLM Model: llama3.2:3b
+2026-07-05 15:45:11.743 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:45:11.743 | INFO     | main:startup_event:74 - 🧠 Embedding Model: all-minilm:latest
+2026-07-05 15:45:11.743 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:45:11.743 | INFO     | main:startup_event:75 - 🔗 API Docs: http://localhost:8000/docs
+2026-07-05 15:45:11.744 | INFO     | main:startup_event:76 - ✅ Server ready!
+2026-07-05 15:45:11.744 | INFO     | main:startup_event:76 - ✅ Server ready!
